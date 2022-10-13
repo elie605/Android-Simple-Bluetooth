@@ -71,28 +71,10 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/scan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Bluetooth ON" />
-
-    <Button
-        android:id="@+id/off"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Bluetooth OFF" />
-
-    <Button
         android:id="@+id/paired_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Show paired Devices" />
-
-    <Button
-        android:id="@+id/discover"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Discover New Devices" />
 
     <ListView
         android:id="@+id/devices_list_view"

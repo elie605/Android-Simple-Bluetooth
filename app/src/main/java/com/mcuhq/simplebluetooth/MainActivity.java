@@ -48,9 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mBluetoothStatus;
     private TextView mReadBuffer;
     private Button mScanBtn;
-    private Button mOffBtn;
     private Button mListPairedDevicesBtn;
-    private Button mDiscoverBtn;
     private ListView mDevicesListView;
     private Button mLED1;
 
@@ -69,9 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
         mBluetoothStatus = (TextView)findViewById(R.id.bluetooth_status);
         mReadBuffer = (TextView) findViewById(R.id.read_buffer);
-        mScanBtn = (Button)findViewById(R.id.scan);
-        mOffBtn = (Button)findViewById(R.id.off);
-        mDiscoverBtn = (Button)findViewById(R.id.discover);
         mListPairedDevicesBtn = (Button)findViewById(R.id.paired_btn);
         mLED1 = (Button) findViewById(R.id.checkbox_led_1);
 
@@ -81,11 +76,6 @@ public class MainActivity extends AppCompatActivity {
         mDevicesListView = (ListView)findViewById(R.id.devices_list_view);
         mDevicesListView.setAdapter(mBTArrayAdapter); // assign model to view
         mDevicesListView.setOnItemClickListener(mDeviceClickListener);
-
-        // Ask for location permission if not already allowed
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-
 
         mHandler = new Handler(Looper.getMainLooper()){
             @Override
@@ -106,35 +96,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        if (mBTArrayAdapter == null) {
-            // Device does not support Bluetooth
-            mBluetoothStatus.setText(getString(R.string.sBTstaNF));
-            Toast.makeText(getApplicationContext(),getString(R.string.sBTdevNF),Toast.LENGTH_SHORT).show();
-        }
-        else {
-
+        if (mBTArrayAdapter != null) {
             mLED1.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
                     if(mConnectedThread != null) //First check to make sure thread created
-                        mConnectedThread.write("1");
+                        mConnectedThread.write("1w");
                 }
             });
 
-
-            mScanBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    bluetoothOn();
-                }
-            });
-
-            mOffBtn.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    bluetoothOff();
-                }
-            });
 
             mListPairedDevicesBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -143,25 +113,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            mDiscoverBtn.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    discover();
-                }
-            });
-        }
-    }
-
-    private void bluetoothOn(){
-        if (!mBTAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            mBluetoothStatus.setText(getString(R.string.BTEnable));
-            Toast.makeText(getApplicationContext(),getString(R.string.sBTturON),Toast.LENGTH_SHORT).show();
-
-        }
-        else{
-            Toast.makeText(getApplicationContext(),getString(R.string.BTisON), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -180,44 +131,6 @@ public class MainActivity extends AppCompatActivity {
                 mBluetoothStatus.setText(getString(R.string.sDisabled));
         }
     }
-
-    private void bluetoothOff(){
-        mBTAdapter.disable(); // turn off
-        mBluetoothStatus.setText(getString(R.string.sBTdisabl));
-        Toast.makeText(getApplicationContext(),"Bluetooth turned Off", Toast.LENGTH_SHORT).show();
-    }
-
-    private void discover(){
-        // Check if the device is already discovering
-        if(mBTAdapter.isDiscovering()){
-            mBTAdapter.cancelDiscovery();
-            Toast.makeText(getApplicationContext(),getString(R.string.DisStop),Toast.LENGTH_SHORT).show();
-        }
-        else{
-            if(mBTAdapter.isEnabled()) {
-                mBTArrayAdapter.clear(); // clear items
-                mBTAdapter.startDiscovery();
-                Toast.makeText(getApplicationContext(), getString(R.string.DisStart), Toast.LENGTH_SHORT).show();
-                registerReceiver(blReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-            }
-            else{
-                Toast.makeText(getApplicationContext(), getString(R.string.BTnotOn), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    final BroadcastReceiver blReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if(BluetoothDevice.ACTION_FOUND.equals(action)){
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                // add the name to the list
-                mBTArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-                mBTArrayAdapter.notifyDataSetChanged();
-            }
-        }
-    };
 
     private void listPairedDevices(){
         mBTArrayAdapter.clear();
