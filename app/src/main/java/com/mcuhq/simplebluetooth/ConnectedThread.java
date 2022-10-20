@@ -17,36 +17,43 @@ public class ConnectedThread extends Thread {
     public ConnectedThread(BluetoothSocket socket, Handler handler) {
         mmSocket = socket;
         mHandler = handler;
-        InputStream tmpIn = null;
-        OutputStream tmpOut = null;
+        InputStream inputStream = null;
+        OutputStream outputStream = null;
 
-        // Get the input and output streams, using temp objects because
-        // member streams are final
+        // Het op halen van input en output streams , kunnen null zijn en dus kunnen niet gelijk
+        // final zijn
         try {
-            tmpIn = socket.getInputStream();
-            tmpOut = socket.getOutputStream();
-        } catch (IOException e) { }
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
+        } catch (IOException e) {
+        }
 
-        mmInStream = tmpIn;
-        mmOutStream = tmpOut;
+        mmInStream = inputStream;
+        mmOutStream = outputStream;
     }
 
     @Override
     public void run() {
-        byte[] buffer = new byte[1024];  // buffer store for the stream
-        int bytes; // bytes returned from read()
-        // Keep listening to the InputStream until an exception occurs
+        // bufferopslag voor de stream
+        byte[] buffer = new byte[1024];
+        // bufferopslag voor de stream
+        int bytes;
+        // Blijf luisteren naar de InputStream totdat er een uitzondering optreedt
         while (true) {
             try {
                 // Read from the InputStream
                 bytes = mmInStream.available();
-                if(bytes != 0) {
+                if (bytes != 0) {
                     buffer = new byte[1024];
-                    SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
-                    bytes = mmInStream.available(); // how many bytes are ready to be read?
-                    bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
-                    mHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer)
-                            .sendToTarget(); // Send the obtained bytes to the UI activity
+                    // pauze en wacht op de rest van de gegevens. Pas dit aan afhankelijk van uw verzendsnelheid.
+                    SystemClock.sleep(100);
+                    // hoeveel bytes zijn klaar om gelezen te worden?
+                    bytes = mmInStream.available();
+                    //  hoeveel bytes we daadwerkelijk lezen
+                    bytes = mmInStream.read(buffer, 0, bytes);
+                    // Stuur de verkregen bytes naar de UI-activiteit
+                    mHandler.obtainMessage(MainActivity.MSG_READ, bytes, -1, buffer)
+                            .sendToTarget();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -56,18 +63,21 @@ public class ConnectedThread extends Thread {
         }
     }
 
-    /* Call this from the main activity to send data to the remote device */
+    //Sturen van data naar de geconecte blauwetand apparaat
     public void write(String input) {
-        byte[] bytes = input.getBytes();           //converts entered String into bytes
+        //String to bytes
+        byte[] bytes = input.getBytes();
         try {
             mmOutStream.write(bytes);
-        } catch (IOException e) { }
+        } catch (IOException e) {
+        }
     }
 
-    /* Call this from the main activity to shutdown the connection */
+    //Het aflsuiten van de bluewTand connectie
     public void cancel() {
         try {
             mmSocket.close();
-        } catch (IOException e) { }
+        } catch (IOException e) {
+        }
     }
 }
